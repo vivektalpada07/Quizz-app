@@ -1,9 +1,8 @@
 package cs.quizzapp.prokect.backend.services;
 
-import cs.quizzapp.prokect.backend.db.QuestionRepository;
 import cs.quizzapp.prokect.backend.db.QuizRepository;
-import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.models.Quiz;
+import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,33 +15,34 @@ public class QuizService {
     @Autowired
     private QuizRepository quizRepository;
 
-    @Autowired
-    private QuestionRepository questionRepository;
-
-    public Quiz createQuiz(Quiz quiz) {
+    public Quiz createQuizWithQuestions(QuizRequest quizRequest) {
+        Quiz quiz = new Quiz();
+        quiz.setName(quizRequest.getName());
+        quiz.setCategory(quizRequest.getCategory());
+        quiz.setDifficulty(quizRequest.getDifficulty());
+        quiz.setStartDate(quizRequest.getStartDate());
+        quiz.setEndDate(quizRequest.getEndDate());
         return quizRepository.save(quiz);
+    }
+
+    public Quiz updateQuiz(Long id, Quiz updatedQuiz) {
+        Optional<Quiz> quizOptional = quizRepository.findById(id);
+        if (quizOptional.isPresent()) {
+            Quiz quiz = quizOptional.get();
+            quiz.setName(updatedQuiz.getName());
+            quiz.setStartDate(updatedQuiz.getStartDate());
+            quiz.setEndDate(updatedQuiz.getEndDate());
+            return quizRepository.save(quiz);
+        }
+        return null;
     }
 
     public List<Quiz> getAllQuizzes() {
         return quizRepository.findAll();
     }
 
-    public Quiz getQuizById(Long id) {
-        return quizRepository.findById(id).orElse(null);
-    }
-
-    public Quiz updateQuiz(Long id, Quiz updatedQuiz) {
-        Optional<Quiz> quizOptional = quizRepository.findById(id);
-        if (quizOptional.isPresent()) {
-            Quiz existingQuiz = quizOptional.get();
-            existingQuiz.setName(updatedQuiz.getName());
-            existingQuiz.setCategory(updatedQuiz.getCategory());
-            existingQuiz.setDifficulty(updatedQuiz.getDifficulty());
-            existingQuiz.setStartDate(updatedQuiz.getStartDate());
-            existingQuiz.setEndDate(updatedQuiz.getEndDate());
-            return quizRepository.save(existingQuiz);
-        }
-        return null;
+    public Optional<Quiz> getQuizById(Long id) {
+        return quizRepository.findById(id);
     }
 
     public boolean deleteQuiz(Long id) {
@@ -51,10 +51,5 @@ public class QuizService {
             return true;
         }
         return false;
-    }
-    // Get questions by quiz ID
-    public List<Question> getQuestionsByQuizId(Long quizId) {
-        Quiz quiz = getQuizById(quizId);
-        return quiz != null ? quiz.getQuestions() : null;
     }
 }
