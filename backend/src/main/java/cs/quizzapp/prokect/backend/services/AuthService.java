@@ -19,12 +19,16 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void authenticate(String username, String password) {
+    public boolean authenticate(String username, String password) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
+        return false;
+    }
+
+    public void registerUser(User user) {
     }
 }
