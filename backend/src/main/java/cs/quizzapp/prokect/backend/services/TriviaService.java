@@ -1,7 +1,9 @@
 package cs.quizzapp.prokect.backend.services;
 
-import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.db.QuestionRepository;
+import cs.quizzapp.prokect.backend.models.Question;
+import cs.quizzapp.prokect.backend.models.Quiz;
+import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -17,11 +19,15 @@ public class TriviaService {
     @Autowired
     private QuestionRepository questionRepository;
 
-    private static final String API_URL = "https://opentdb.com/api.php?amount=10&category=17&difficulty=easy&type=multiple";
+    public List<Question> fetchAndSaveQuestions(QuizRequest quizRequest, Quiz quiz) {
+        // Build the dynamic URL
+        String apiUrl = "https://opentdb.com/api.php?amount=" + quizRequest.getAmount() +
+                "&category=" + quizRequest.getCategory() +
+                "&difficulty=" + quizRequest.getDifficulty() +
+                "&type=multiple";
 
-    public List<Question> fetchAndSaveQuestions() {
         RestTemplate restTemplate = new RestTemplate();
-        Map<String, Object> response = restTemplate.getForObject(API_URL, Map.class);
+        Map<String, Object> response = restTemplate.getForObject(apiUrl, Map.class);
 
         List<Question> questions = new ArrayList<>();
         if (response != null && response.containsKey("results")) {
@@ -32,17 +38,19 @@ public class TriviaService {
                 question.setQuestionText((String) result.get("question"));
                 question.setCorrectAnswer((String) result.get("correct_answer"));
 
-                // Initialize options with incorrect answers and add the correct answer
+                // Combine correct and incorrect answers into options
                 List<String> options = new ArrayList<>((List<String>) result.get("incorrect_answers"));
-                options.add(question.getCorrectAnswer()); // Add the correct answer to options
-                Collections.shuffle(options); // Shuffle the options
+                options.add(question.getCorrectAnswer());
+                Collections.shuffle(options);
 
-                question.setOptions(options); // Set the shuffled options
+                question.setOptions(options);
+                question.setQuiz(quiz);
 
-                // Save the question to the database
+                // Save question to database
                 questions.add(questionRepository.save(question));
             }
         }
+
         return questions;
     }
 }
