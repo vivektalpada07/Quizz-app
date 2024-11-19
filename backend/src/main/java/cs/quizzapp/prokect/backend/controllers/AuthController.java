@@ -1,7 +1,6 @@
 package cs.quizzapp.prokect.backend.controllers;
 
 import cs.quizzapp.prokect.backend.models.User;
-import cs.quizzapp.prokect.backend.services.AuthService;
 import cs.quizzapp.prokect.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,11 +14,7 @@ import java.util.Map;
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
-
-    @Autowired
     private UserService userService;
-
     /**
      * Endpoint for user login
      * @param body Contains username and password
@@ -31,7 +26,7 @@ public class AuthController {
         String password = body.get("password");
 
         try {
-            authService.authenticate(username, password); // Authenticate the user
+            userService.authenticate(username, password); // Authenticate the user
             return ResponseEntity.ok("Login successful. You can now access the quiz.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials. Please try again.");
