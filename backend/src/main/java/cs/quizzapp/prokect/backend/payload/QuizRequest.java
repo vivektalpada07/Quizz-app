@@ -5,11 +5,12 @@ import java.util.Date;
 public class QuizRequest {
 
     private String name;
-    private String category; // Category ID for OpenTDB
-    private String difficulty; // easy, medium, or hard
+    private String category; // Category name, e.g., "History", "Science & Nature"
+    private String difficulty; // Difficulty level: easy, medium, or hard
     private int amount; // Number of questions
     private Date startDate;
     private Date endDate;
+    private Integer categoryId; // Numeric category ID for OpenTDB
 
     // Getters and Setters
     public String getName() {
@@ -58,5 +59,13 @@ public class QuizRequest {
 
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
+    }
+
+    public Integer getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
     }
 }

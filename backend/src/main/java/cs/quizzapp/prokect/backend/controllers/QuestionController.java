@@ -4,7 +4,6 @@ import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.models.Quiz;
 import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import cs.quizzapp.prokect.backend.services.QuestionService;
-import cs.quizzapp.prokect.backend.services.TriviaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +18,6 @@ public class QuestionController {
 
     @Autowired
     private QuestionService questionService;
-
-    @Autowired
-    private TriviaService triviaService;
-
     // Get all questions
     @GetMapping
     public ResponseEntity<List<Question>> getAllQuestions() {
@@ -49,7 +44,8 @@ public class QuestionController {
     @PostMapping("/fetch")
     public ResponseEntity<?> fetchAndSaveQuestions(@RequestBody QuizRequest quizRequest, @RequestBody Quiz quiz) {
         try {
-            List<Question> questions = triviaService.fetchAndSaveQuestions(quizRequest, quiz);
+            // Use the instance of questionService to call the fetchAndSaveQuestions method
+            List<Question> questions = questionService.fetchAndSaveQuestions(quizRequest, quiz);
             return ResponseEntity.status(HttpStatus.CREATED).body(questions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
