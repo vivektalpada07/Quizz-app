@@ -1,8 +1,8 @@
 package cs.quizzapp.prokect.backend.models;
 
 import jakarta.persistence.*;
-import java.util.Date;
-import java.util.List;
+
+import java.util.*;
 
 @Entity
 public class Quiz {
@@ -15,9 +15,29 @@ public class Quiz {
     private String difficulty;
     private Date startDate;
     private Date endDate;
+    private int likesCount;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
+
+    @ElementCollection
+    private List<Long> participants = new ArrayList<>();
+
+    public Quiz(){
+
+    }
+
+    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, List<Question> questions, List<Long> participants) {
+        this.id = id;
+        this.name = name;
+        this.category = category;
+        this.difficulty = difficulty;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.likesCount = likesCount;
+        this.questions = questions;
+        this.participants = participants;
+    }
 
     public Long getId() {
         return id;
@@ -75,6 +95,19 @@ public class Quiz {
         this.questions = questions;
     }
 
-    // Getters and setters
-    // ...
+    public List<Long> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(List<Long> participants) {
+        this.participants = participants;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
 }

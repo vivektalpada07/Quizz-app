@@ -18,7 +18,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String role = "USER"; // Default role
+    private String role;
 
     private String firstName; // First name of the user
     private String lastName; // Last name of the user

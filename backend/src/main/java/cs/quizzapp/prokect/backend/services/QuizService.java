@@ -1,6 +1,9 @@
 package cs.quizzapp.prokect.backend.services;
 
+import cs.quizzapp.prokect.backend.db.PlayerParticipationRepository;
 import cs.quizzapp.prokect.backend.db.QuizRepository;
+import cs.quizzapp.prokect.backend.models.PlayerParticipation;
+import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.models.Quiz;
 import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import cs.quizzapp.prokect.backend.utils.QuizCategoryMapper;
@@ -8,8 +11,7 @@ import cs.quizzapp.prokect.backend.utils.QuizCategoryMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class QuizService {
@@ -19,6 +21,9 @@ public class QuizService {
 
     @Autowired
     private QuestionService questionService; // Instance of QuestionService
+
+    @Autowired
+    private PlayerParticipationRepository playerParticipationRepository;
 
     /**
      * Creates a new quiz and fetches questions from OpenTDB.
@@ -106,4 +111,141 @@ public class QuizService {
         }
         return false;
     }
+
+    //Get ongoing or currently active quizzes.
+    public List<Quiz> getOngoingQuizzes() {
+        return quizRepository.findOngoingQuizzes(new Date());
+    }
+
+    //Get upcoming quizzes.
+    public List<Quiz> getUpcomingQuizzes() {
+        return quizRepository.findUpcomingQuizzes(new Date());
+    }
+
+    //Get past quizzes.
+    public List<Quiz> getPastQuizzes() {
+        return quizRepository.findPastQuizzes(new Date());
+    }
+
+    //Get participated quizzes.
+    public List<Quiz> getParticipatedQuizzes(Long playerId) {
+        return playerParticipationRepository.findParticipatedQuizzesByPlayerId(playerId);
+    }
+
+    //Add the players who are participating in the same quiz with same 10 questions.
+    public List<Question> participateInQuiz(Long quizId, Long playerId) {
+        // Fetch the quiz
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // Check if the quiz is ongoing
+        Date currentDate = new Date();
+        if (currentDate.before(quiz.getStartDate()) || currentDate.after(quiz.getEndDate())) {
+            throw new IllegalStateException("Player can only join ongoing quizzes");
+        }
+
+        // Check if the player is already participating
+        if (quiz.getParticipants().contains(playerId)) {
+            throw new IllegalStateException("Player is already participating in this quiz");
+        }
+
+        // Add the player to the participants
+        quiz.getParticipants().add(playerId);
+        quizRepository.save(quiz);
+
+        // Retrieve the 10 questions assigned to this quiz
+        List<Question> questions = quiz.getQuestions();
+        if (questions.size() > 10) {
+            questions = questions.subList(0, 10);
+        }
+
+        // Return the questions to the player
+        return questions;
+    }
+
+    //Get 1 question at a time.
+    public Question getCurrentQuestion(Long quizId, Long playerId) {
+        // Fetch player's participation
+        PlayerParticipation playerParticipation = playerParticipationRepository.findByQuizIdAndPlayerId(quizId, playerId)
+                .orElseThrow(() -> new IllegalArgumentException("Player not found in any quiz participation"));
+
+        // Validate progress
+        int currentIndex = playerParticipation.getQuestionIndex();
+        Quiz quiz = playerParticipation.getQuiz();
+
+        if (quiz == null || quiz.getQuestions() == null || quiz.getQuestions().isEmpty()) {
+            throw new IllegalStateException("Quiz or questions are not properly configured");
+        }
+
+        List<Question> questions = quiz.getQuestions();
+
+        if (currentIndex < 0 || currentIndex >= questions.size()) {
+            throw new IllegalStateException("No more questions available");
+        }
+
+        // Return current question
+        return questions.get(currentIndex);
+    }
+
+    //Display feedback according to correct and incorrect answers
+    public Map<String, Object> submitAnswer(Long quizId, Long playerId, String answer) {
+        PlayerParticipation playerParticipation = playerParticipationRepository.findByQuizIdAndPlayerId(quizId, playerId)
+                .orElseThrow(() -> new IllegalArgumentException("Player not found in this quiz"));
+
+        int currentIndex = playerParticipation.getQuestionIndex();
+        Quiz quiz = playerParticipation.getQuiz();
+        List<Question> questions = quiz.getQuestions();
+
+        if (currentIndex >= questions.size()) {
+            throw new IllegalStateException("No more questions available");
+        }
+
+        // Validate answer
+        Question currentQuestion = questions.get(currentIndex);
+        boolean isCorrect = currentQuestion.getCorrectAnswer().equalsIgnoreCase(answer);
+
+        // Set feedback according to correct or incorrect answer
+        String feedback;
+        if (isCorrect) {
+            feedback = "Correct! Well done.";
+            playerParticipation.setScore(playerParticipation.getScore() + 1);
+        } else {
+            feedback = "Incorrect. The correct answer is: " + currentQuestion.getCorrectAnswer();
+        }
+
+        // Move to the next question
+        playerParticipation.setQuestionIndex(currentIndex + 1);
+        playerParticipationRepository.save(playerParticipation);
+
+        // Return feedback and correctness in a map
+        Map<String, Object> response = new HashMap<>();
+        response.put("isCorrect", isCorrect);
+        response.put("feedback", feedback);
+        return response;
+    }
+
+    //Get the score
+    public int getScore(Long quizId, Long playerId) {
+        PlayerParticipation playerParticipation = playerParticipationRepository.findByQuizIdAndPlayerId(quizId, playerId)
+                .orElseThrow(() -> new IllegalArgumentException("Player not found in this quiz"));
+
+        return playerParticipation.getScore();
+    }
+
+    public void likeQuiz(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+        quiz.setLikesCount(quiz.getLikesCount() + 1);
+        quizRepository.save(quiz);
+    }
+
+    public void unlikeQuiz(Long quizId) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+        if (quiz.getLikesCount() > 0) {
+            quiz.setLikesCount(quiz.getLikesCount() - 1);
+            quizRepository.save(quiz);
+        }
+    }
+
 }

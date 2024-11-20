@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/quizzes")
@@ -21,6 +23,8 @@ public class QuizController {
 
     @Autowired
     private QuestionService questionService;
+
+
 
     /**
      * Create a new quiz and fetch questions dynamically from OpenTDB.
@@ -83,4 +87,118 @@ public class QuizController {
         boolean isDeleted = quizService.deleteQuiz(id);
         return isDeleted ? ResponseEntity.ok("Quiz deleted successfully.") : ResponseEntity.notFound().build();
     }
+
+    // Get ongoing quizzes
+    @GetMapping("/ongoing")
+    public ResponseEntity<List<Quiz>> getOngoingQuizzes() {
+        return ResponseEntity.ok(quizService.getOngoingQuizzes());
+    }
+
+    // Get upcoming quizzes
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<Quiz>> getUpcomingQuizzes() {
+        return ResponseEntity.ok(quizService.getUpcomingQuizzes());
+    }
+
+    // Get past quizzes
+    @GetMapping("/past")
+    public ResponseEntity<List<Quiz>> getPastQuizzes() {
+        return ResponseEntity.ok(quizService.getPastQuizzes());
+    }
+
+    // Get participated quizzes
+    @GetMapping("/participate")
+    public ResponseEntity<List<Quiz>> getParticipatedQuizzes(@RequestParam Long playerId) {
+        List<Quiz> quizzes = quizService.getParticipatedQuizzes(playerId);
+        return ResponseEntity.ok(quizzes);
+    }
+
+    // Participate in quiz
+    @PostMapping("/{quizId}/participate")
+    public ResponseEntity<?> participateInQuiz(
+            @PathVariable Long quizId,
+            @RequestParam Long playerId) {
+        try {
+            // Call the service method to get the list of questions
+            List<Question> questions = quizService.participateInQuiz(quizId, playerId);
+
+            // Return the list of questions in the response
+            return ResponseEntity.ok(questions);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // Get 1 question at a time
+    @GetMapping("/{quizId}/question/{playerId}")
+    public ResponseEntity<Question> getCurrentQuestion(
+            @PathVariable Long quizId,
+            @PathVariable Long playerId) {
+        try {
+            Question question = quizService.getCurrentQuestion(quizId, playerId);
+            return ResponseEntity.ok(question);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build(); // Handle errors gracefully
+        }
+    }
+
+    // After submit answer it will display the feedback according to correct or incorrect answers.
+    @PostMapping("/{quizId}/submit")
+    public ResponseEntity<Map<String, Object>> submitAnswer(
+            @PathVariable Long quizId,
+            @RequestParam Long playerId,
+            @RequestParam String answer) {
+        try {
+            // Call the service method to get the response
+            Map<String, Object> response = quizService.submitAnswer(quizId, playerId, answer);
+
+            // Return the response map
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // Handle exceptions and create an error response map
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("isCorrect", false);
+            errorResponse.put("feedback", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    // Get the score and display out of 10
+    @GetMapping("/{quizId}/results/{playerId}")
+    public ResponseEntity<Map<String, Object>> getPlayerResults(
+            @PathVariable Long quizId,
+            @PathVariable Long playerId) {
+        try {
+            int score = quizService.getScore(quizId, playerId);
+            Map<String, Object> results = new HashMap<>();
+            results.put("score", score);
+            results.put("total", 10); // Assuming each quiz has 10 questions
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // Post a like
+    @PostMapping("/{quizId}/like")
+    public ResponseEntity<String> likeQuiz(@PathVariable Long quizId) {
+        try {
+            quizService.likeQuiz(quizId);
+            return ResponseEntity.ok("Liked successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error liking quiz");
+        }
+    }
+
+    // Post an unlike
+    @PostMapping("/{quizId}/unlike")
+    public ResponseEntity<String> unlikeQuiz(@PathVariable Long quizId) {
+        try {
+            quizService.unlikeQuiz(quizId);
+            return ResponseEntity.ok("Unliked successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error unliking quiz");
+        }
+    }
+
 }
