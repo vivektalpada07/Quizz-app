@@ -16,6 +16,8 @@ public class Quiz {
     private Date startDate;
     private Date endDate;
     private int likesCount;
+    private Double rating = 0.0; // Average rating
+    private Integer ratingCount = 0; // Total number of ratings
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
@@ -27,7 +29,7 @@ public class Quiz {
 
     }
 
-    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, List<Question> questions, List<Long> participants) {
+    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, Double rating, Integer ratingCount, List<Question> questions, List<Long> participants) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -35,6 +37,8 @@ public class Quiz {
         this.startDate = startDate;
         this.endDate = endDate;
         this.likesCount = likesCount;
+        this.rating = rating;
+        this.ratingCount = ratingCount;
         this.questions = questions;
         this.participants = participants;
     }
@@ -109,5 +113,21 @@ public class Quiz {
 
     public void setLikesCount(int likesCount) {
         this.likesCount = likesCount;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
     }
 }

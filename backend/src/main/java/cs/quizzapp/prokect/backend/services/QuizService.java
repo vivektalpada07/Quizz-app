@@ -164,12 +164,11 @@ public class QuizService {
     }
 
     //Get 1 question at a time.
-    public Question getCurrentQuestion(Long quizId, Long playerId) {
+    public Map<String, Object> getCurrentQuestion(Long quizId, Long playerId) {
         // Fetch player's participation
         PlayerParticipation playerParticipation = playerParticipationRepository.findByQuizIdAndPlayerId(quizId, playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found in any quiz participation"));
 
-        // Validate progress
         int currentIndex = playerParticipation.getQuestionIndex();
         Quiz quiz = playerParticipation.getQuiz();
 
@@ -183,8 +182,16 @@ public class QuizService {
             throw new IllegalStateException("No more questions available");
         }
 
-        // Return current question
-        return questions.get(currentIndex);
+        // Get the current question
+        Question currentQuestion = questions.get(currentIndex);
+
+        // Prepare a map with the question details
+        Map<String, Object> response = new HashMap<>();
+        response.put("question", currentQuestion.getQuestionText());
+        response.put("options", currentQuestion.getOptions()); // Assuming getOptions returns a list of options
+        response.put("questionId", currentQuestion.getId());
+
+        return response;
     }
 
     //Display feedback according to correct and incorrect answers
@@ -232,6 +239,7 @@ public class QuizService {
         return playerParticipation.getScore();
     }
 
+    //Like a quiz
     public void likeQuiz(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
@@ -239,6 +247,7 @@ public class QuizService {
         quizRepository.save(quiz);
     }
 
+    //Unlike a quiz
     public void unlikeQuiz(Long quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
@@ -247,5 +256,52 @@ public class QuizService {
             quizRepository.save(quiz);
         }
     }
+
+    //Additional features
+    //Replay a quiz
+    public void replayQuiz(Long quizId, Long playerId) {
+        // Fetch the quiz and player participation details
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // Check if the quiz is ongoing
+        Date currentDate = new Date();
+        if (currentDate.before(quiz.getStartDate()) || currentDate.after(quiz.getEndDate())) {
+            throw new IllegalStateException("Quiz is no longer active");
+        }
+
+        // Fetch the player's participation, or create a new one if it doesn't exist
+        PlayerParticipation playerParticipation = playerParticipationRepository.findByQuizIdAndPlayerId(quizId, playerId)
+                .orElseGet(() -> {
+                    PlayerParticipation newParticipation = new PlayerParticipation();
+                    newParticipation.setQuiz(quiz);
+                    newParticipation.setId(playerId);
+                    newParticipation.setQuestionIndex(0); // Start from the first question
+                    newParticipation.setScore(0); // Reset score
+                    return playerParticipationRepository.save(newParticipation);
+                });
+
+        // Reset player's progress (in case they have participated before)
+        playerParticipation.setQuestionIndex(0);
+        playerParticipation.setScore(0);
+        playerParticipationRepository.save(playerParticipation);
+    }
+
+    //Add a rating
+    public void addRating(Long quizId, int rating) {
+        Quiz quiz = quizRepository.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // Update rating logic
+        double totalRating = quiz.getRating() * quiz.getRatingCount() + rating;
+        quiz.setRatingCount(quiz.getRatingCount() + 1);
+        quiz.setRating(totalRating / quiz.getRatingCount());
+
+        // Save updated quiz
+        quizRepository.save(quiz);
+    }
+
+
+
 
 }
