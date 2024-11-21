@@ -129,18 +129,20 @@ public class QuizController {
         }
     }
 
-    // Get 1 question at a time
+    // Get 1 question at a time for a specific player
     @GetMapping("/{quizId}/question/{playerId}")
-    public ResponseEntity<Question> getCurrentQuestion(
+    public ResponseEntity<Map<String, Object>> getCurrentQuestion(
             @PathVariable Long quizId,
             @PathVariable Long playerId) {
         try {
-            Question question = quizService.getCurrentQuestion(quizId, playerId);
+            // Call the service method to get the current question as a map
+            Map<String, Object> question = quizService.getCurrentQuestion(quizId, playerId);
             return ResponseEntity.ok(question);
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().build(); // Handle errors gracefully
         }
     }
+
 
     // After submit answer it will display the feedback according to correct or incorrect answers.
     @PostMapping("/{quizId}/submit")
@@ -198,6 +200,54 @@ public class QuizController {
             return ResponseEntity.ok("Unliked successfully!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error unliking quiz");
+        }
+    }
+
+    // Additional features
+    // Play the quiz again
+    @PostMapping("/replay/{quizId}/{playerId}")
+    public ResponseEntity<?> replayQuiz(@PathVariable Long quizId, @PathVariable Long playerId) {
+        try {
+            // Call the service method to reset the player's participation
+            quizService.replayQuiz(quizId, playerId);
+
+            // Fetch the first question after resetting progress
+            Map<String, Object> currentQuestion = quizService.getCurrentQuestion(quizId, playerId);
+
+            // Return the first question in the response
+            return ResponseEntity.ok(currentQuestion);
+        } catch (Exception e) {
+            // Handle exceptions (like invalid quiz ID or player ID)
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
+    // Get the rating
+    @GetMapping("/{quizId}/rating")
+    public ResponseEntity<Map<String, Object>> getQuizRating(@PathVariable Long quizId) {
+        Quiz quiz = quizService.getQuizById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("rating", quiz.getRating());
+        response.put("ratingCount", quiz.getRatingCount());
+        return ResponseEntity.ok(response);
+    }
+
+    // Add the rating
+    @PostMapping("/{quizId}/rate")
+    public ResponseEntity<String> rateQuiz(
+            @PathVariable Long quizId,
+            @RequestParam int rating) {
+        if (rating < 1 || rating > 5) {
+            return ResponseEntity.badRequest().body("Rating must be between 1 and 5.");
+        }
+
+        try {
+            quizService.addRating(quizId, rating);
+            return ResponseEntity.ok("Rating submitted successfully!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
