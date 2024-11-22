@@ -84,8 +84,8 @@ public class QuestionService {
     }
 
 
-    /**
-     * Fetches questions for a quiz. If questions already exist for the quiz, they are returned.
+    /*/**
+     * Fetches questions for a quiz. If questions already exist for the quiz, they are limited to 10 and returned.
      * Otherwise, new questions are fetched from OpenTDB and saved to the database.
      *
      * @param quizRequest Contains admin input like category, difficulty, and amount.
@@ -96,9 +96,15 @@ public class QuestionService {
         // Check if questions already exist for the quiz
         List<Question> existingQuestions = getQuestionsByQuizId(quiz.getId());
         if (!existingQuestions.isEmpty()) {
-            return existingQuestions; // Return existing questions if they exist
-        }
+            System.out.println("Returning up to 10 existing questions for quiz ID: " + quiz.getId());
 
+            // Limit the number of questions to 10
+            return existingQuestions.stream()
+                    .limit(10)
+                    .toList(); // Return only the first 10 questions
+        }
+        // Initialize fetchedQuestions list
+        List<Question> fetchedQuestions = new ArrayList<>();
         // Build the dynamic URL
         String apiUrl = "https://opentdb.com/api.php?amount=" + quizRequest.getAmount() +
                 "&category=" + quizRequest.getCategoryId() +
@@ -121,23 +127,30 @@ public class QuestionService {
 
                     for (Map<String, Object> result : results) {
                         // Map OpenTDB data to Question entity
-                        Question question = new Question();
-                        question.setQuestionText((String) result.get("question"));
-                        question.setCorrectAnswer((String) result.get("correct_answer"));
+                        Question newQuestion = new Question();
+                        newQuestion.setQuestionText((String) result.get("question"));
+                        newQuestion.setCorrectAnswer((String) result.get("correct_answer"));
 
                         // Combine correct and incorrect answers into options
                         List<String> options = new ArrayList<>((List<String>) result.get("incorrect_answers"));
-                        options.add(question.getCorrectAnswer());
+                        options.add(newQuestion.getCorrectAnswer());
                         Collections.shuffle(options);
 
-                        question.setOptions(options);
-                        question.setQuiz(quiz);
+                        newQuestion.setOptions(options);
+                        newQuestion.setQuiz(quiz);
+                        // Check for duplicate questions in fetchedQuestions
+                        boolean isDuplicate = fetchedQuestions.stream()
+                                .anyMatch(q -> q.getQuestionText().equals(newQuestion.getQuestionText()));
+                        if (isDuplicate) {
+                            System.out.println("Skipping duplicate question: " + newQuestion.getQuestionText());
+                            continue; // Skip saving this question
+                        }
 
                         // Save question to database
-                        questions.add(questionRepository.save(question));
+                        fetchedQuestions.add(questionRepository.save(newQuestion));
                     }
 
-                    return questions; // Exit loop if successful
+                    return fetchedQuestions; // Exit loop if successful
                 }
 
                 throw new RuntimeException("Invalid response from OpenTDB API: " + response);
@@ -159,6 +172,6 @@ public class QuestionService {
             }
         }
 
-        return questions;
+        return fetchedQuestions;
     }
 }

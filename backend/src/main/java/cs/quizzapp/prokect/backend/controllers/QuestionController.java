@@ -37,7 +37,7 @@ public class QuestionController {
     @GetMapping("/quiz/{quizId}")
     public ResponseEntity<List<Question>> getQuestionsByQuizId(@PathVariable Long quizId) {
         List<Question> questions = questionService.getQuestionsByQuizId(quizId);
-        return ResponseEntity.ok(questions);
+        return ResponseEntity.ok(questions.stream().limit(10).toList()); // Limit to 10 questions
     }
 
     // Fetch and save questions for a specific quiz

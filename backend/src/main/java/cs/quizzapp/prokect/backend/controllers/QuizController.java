@@ -2,6 +2,8 @@ package cs.quizzapp.prokect.backend.controllers;
 
 import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.models.Quiz;
+import cs.quizzapp.prokect.backend.dto.QuestionDTO;
+import cs.quizzapp.prokect.backend.dto.QuizDTO;
 import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import cs.quizzapp.prokect.backend.services.QuestionService;
 import cs.quizzapp.prokect.backend.services.QuizService;
@@ -13,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/quizzes")
@@ -23,13 +28,12 @@ public class QuizController {
 
     @Autowired
     private QuestionService questionService;
-
-
+    //private QuizDTO quizDTO;
 
     /**
      * Create a new quiz and fetch questions dynamically from OpenTDB.
      */
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<String> createQuizWithQuestions(@RequestBody QuizRequest quizRequest) {
         try {
             // Validate the category
@@ -46,6 +50,8 @@ public class QuizController {
             if (quiz == null) {
                 // Create a new quiz if it doesn't exist
                 quiz = quizService.createQuizWithQuestions(quizRequest);
+
+                return ResponseEntity.ok("Quiz created successfully!");
             }
             // Fetch and save questions using the injected QuestionService instance
             List<Question> questions = questionService.fetchAndSaveQuestions(quizRequest, quiz);
@@ -72,9 +78,47 @@ public class QuizController {
      * Get a quiz by ID.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Quiz> getQuizById(@PathVariable Long id) {
-        return ResponseEntity.of(quizService.getQuizById(id));
+    public ResponseEntity<QuizDTO> getQuizById(@PathVariable Long id) {
+        Optional<Quiz> quizOptional = quizService.getQuizById(id);
+        //return ResponseEntity.of(quizService.getQuizById(id));
+        if (quizOptional.isPresent()) {
+            Quiz quiz = quizOptional.get();
+
+            // Fetch only 10 questions for this quiz
+            List<Question> limitedQuestions = questionService.getQuestionsByQuizId(quiz.getId())
+                    .stream()
+                    .limit(10)
+                    .collect(Collectors.toList());
+            // Map Questions to QuestionDTOs
+            List<QuestionDTO> questionDTOs = limitedQuestions.stream()
+                    .map(question -> {
+                        QuestionDTO questionDTO = new QuestionDTO();
+                        questionDTO.setId(question.getId());
+                        questionDTO.setQuestionText(question.getQuestionText());
+                        questionDTO.setOptions(question.getOptions());
+                        questionDTO.setCorrectAnswer(question.getCorrectAnswer());
+                        return questionDTO;
+                    })
+                    .collect(Collectors.toList());
+
+
+            // Initialize quizDTO and set its fields
+            QuizDTO quizDTO = new QuizDTO();
+            quizDTO.setId(quiz.getId());
+            quizDTO.setName(quiz.getName());
+            quizDTO.setCategory(quiz.getCategory());
+            quizDTO.setDifficulty(quiz.getDifficulty());
+            quizDTO.setStartDate(quiz.getStartDate());
+            quizDTO.setEndDate(quiz.getEndDate());
+            quizDTO.setQuestions(questionDTOs);
+
+            quiz.setQuestions(limitedQuestions); // Update the quiz object with limited questions
+            return ResponseEntity.ok(quizDTO);
+        } else {
+            return ResponseEntity.status(404).build(); // Quiz not found
+        }
     }
+
     @GetMapping("/categories")
     public ResponseEntity<?> getAvailableCategories() {
         return ResponseEntity.ok(QuizCategoryMapper.getAllCategories());
@@ -87,7 +131,6 @@ public class QuizController {
         boolean isDeleted = quizService.deleteQuiz(id);
         return isDeleted ? ResponseEntity.ok("Quiz deleted successfully.") : ResponseEntity.notFound().build();
     }
-
     // Get ongoing quizzes
     @GetMapping("/ongoing")
     public ResponseEntity<List<Quiz>> getOngoingQuizzes() {
