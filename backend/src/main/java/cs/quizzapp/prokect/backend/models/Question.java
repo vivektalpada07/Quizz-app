@@ -20,6 +20,18 @@ public class Question {
     @JoinColumn(name = "quiz_id")
     private Quiz quiz; // Link this question to a specific quiz
 
+    public Question(Long id, String questionText, List<String> options, String correctAnswer, Quiz quiz) {
+        this.id = id;
+        this.questionText = questionText;
+        this.options = options;
+        this.correctAnswer = correctAnswer;
+        this.quiz = quiz;
+    }
+
+    public Question() {
+
+    }
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
