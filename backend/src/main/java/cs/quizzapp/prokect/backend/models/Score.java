@@ -1,9 +1,6 @@
 package cs.quizzapp.prokect.backend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Score {
@@ -11,18 +8,18 @@ public class Score {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long userId;
     private Long quizId;
+    private Long userId;
+
     private int score;
 
     // No-argument constructor required by JPA
     public Score() {}
 
     // Parameterized constructor
-    public Score(Long id, Long userId, Long quizId, int score) {
-        this.id = id;
-        this.userId = userId;
+    public Score(Long quizId, Long userId, int score) {
         this.quizId = quizId;
+        this.userId = userId;
         this.score = score;
     }
 
@@ -35,20 +32,20 @@ public class Score {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
     public Long getQuizId() {
         return quizId;
     }
 
     public void setQuizId(Long quizId) {
         this.quizId = quizId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public int getScore() {
@@ -68,4 +65,6 @@ public class Score {
                 ", score=" + score +
                 '}';
     }
+
+
 }

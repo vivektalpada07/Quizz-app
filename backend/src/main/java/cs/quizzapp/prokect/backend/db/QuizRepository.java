@@ -25,4 +25,8 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     //This will find the past quizzes when current date is ahead of end date.
     @Query("SELECT q FROM Quiz q WHERE q.endDate < :currentDate")
     List<Quiz> findPastQuizzes(@Param("currentDate") Date currentDate);
+
+    //This will find the participated quizzes which are already played by the players.
+    @Query("SELECT q FROM Quiz q WHERE q.user.id = :userId")
+    List<Quiz> findParticipatedQuizzesByUserId(@Param("userId") Long userId);
 }

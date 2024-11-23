@@ -1,5 +1,6 @@
 package cs.quizzapp.prokect.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -17,19 +18,18 @@ public class Question {
     private String correctAnswer; // Stores the correct answer
 
     @ManyToOne
-    @JoinColumn(name = "quiz_id")
+    @JoinColumn(name = "quiz_id", nullable = false)
+    @JsonIgnore //This will prevent from creating an infinite loop.
     private Quiz quiz; // Link this question to a specific quiz
-
-    public Question(Long id, String questionText, List<String> options, String correctAnswer, Quiz quiz) {
-        this.id = id;
-        this.questionText = questionText;
-        this.options = options;
-        this.correctAnswer = correctAnswer;
-        this.quiz = quiz;
-    }
 
     public Question() {
 
+    }
+
+    public Question(Long id, String questionText, List<String> options) {
+        this.id = id;
+        this.questionText = questionText;
+        this.options = options;
     }
 
     // Getters and Setters

@@ -2,6 +2,8 @@ package cs.quizzapp.prokect.backend.models;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class User {
 
@@ -23,6 +25,9 @@ public class User {
     private String firstName; // First name of the user
     private String lastName; // Last name of the user
     private String profilePicture; // Optional profile picture
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Quiz> quizzes;
 
     public User() {}
 
@@ -60,4 +65,12 @@ public class User {
 
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+    public List<Quiz> getQuizzes() {
+        return quizzes;
+    }
+
+    public void setQuizzes(List<Quiz> quizzes) {
+        this.quizzes = quizzes;
+    }
 }

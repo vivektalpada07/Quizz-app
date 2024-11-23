@@ -1,9 +1,9 @@
 package cs.quizzapp.prokect.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import java.util.*;
 
 @Entity
 public class Quiz {
@@ -19,21 +19,23 @@ public class Quiz {
     private Date endDate;
 
     private int likesCount = 0; // Tracks likes count
-    private Double rating = 0.0; // Average rating
-    private Integer ratingCount = 0; // Total number of ratings
-
-    @ElementCollection
-    private List<Long> participants = new ArrayList<>(); // Stores player IDs
+    private int rating; // Average rating
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Question> questions;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     // Default constructor
     public Quiz() {
     }
 
     // Constructor with fields
-    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, Double rating, Integer ratingCount, List<Question> questions, List<Long> participants) {
+
+
+    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, int rating) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -42,9 +44,6 @@ public class Quiz {
         this.endDate = endDate;
         this.likesCount = likesCount;
         this.rating = rating;
-        this.ratingCount = ratingCount;
-        this.questions = questions;
-        this.participants = participants;
     }
 
     // Getters and Setters
@@ -104,28 +103,12 @@ public class Quiz {
         this.likesCount = likesCount;
     }
 
-    public Double getRating() {
+    public int getRating() {
         return rating;
     }
 
-    public void setRating(Double rating) {
+    public void setRating(int rating) {
         this.rating = rating;
-    }
-
-    public Integer getRatingCount() {
-        return ratingCount;
-    }
-
-    public void setRatingCount(Integer ratingCount) {
-        this.ratingCount = ratingCount;
-    }
-
-    public List<Long> getParticipants() {
-        return participants;
-    }
-
-    public void setParticipants(List<Long> participants) {
-        this.participants = participants;
     }
 
     public List<Question> getQuestions() {
@@ -137,5 +120,13 @@ public class Quiz {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

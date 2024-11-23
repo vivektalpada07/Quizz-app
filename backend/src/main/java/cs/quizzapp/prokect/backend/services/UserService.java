@@ -46,7 +46,7 @@ public class UserService implements UserDetailsService {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword())); // Encrypt password
-        user.setRole("USER");  // Assign default role
+        user.setRole("PLAYER");  // Assign default role
         return userRepository.save(user);
     }
 
