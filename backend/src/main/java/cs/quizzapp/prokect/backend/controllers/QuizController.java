@@ -1,5 +1,6 @@
 package cs.quizzapp.prokect.backend.controllers;
 
+import cs.quizzapp.prokect.backend.dto.QuizSummaryDTO;
 import cs.quizzapp.prokect.backend.models.Question;
 import cs.quizzapp.prokect.backend.models.Quiz;
 import cs.quizzapp.prokect.backend.dto.QuestionDTO;
@@ -73,7 +74,35 @@ public class QuizController {
     public ResponseEntity<List<Quiz>> getAllQuizzes() {
         return ResponseEntity.ok(quizService.getAllQuizzes());
     }
+    @GetMapping("/all")
+    public ResponseEntity<List<QuizSummaryDTO>> getAllQuizzesDTO() {
+        // Fetch all quizzes using the service
+        List<Quiz> quizzes = quizService.getAllQuizzes();
 
+        // Map Quiz objects to QuizSummaryDTOs to avoid unnecessary nesting
+        List<QuizSummaryDTO> quizSummaryDTOs = quizzes.stream().map(quiz -> {
+            QuizSummaryDTO quizSummaryDTO = new QuizSummaryDTO();
+
+            // Set Quiz fields
+            quizSummaryDTO.setId(quiz.getId());
+            quizSummaryDTO.setName(quiz.getName());
+            quizSummaryDTO.setCategory(quiz.getCategory());
+            quizSummaryDTO.setDifficulty(quiz.getDifficulty());
+            quizSummaryDTO.setStartDate(quiz.getStartDate());
+            quizSummaryDTO.setEndDate(quiz.getEndDate());
+            quizSummaryDTO.setLikesCount(quiz.getLikesCount());
+            quizSummaryDTO.setRating(quiz.getRating());
+            quizSummaryDTO.setRatingCount(quiz.getRatingCount());
+
+            // Set the number of questions
+            quizSummaryDTO.setNumberOfQuestions(quiz.getQuestions().size());
+
+            return quizSummaryDTO;
+        }).collect(Collectors.toList());
+
+        // Return response with all quizzes as DTOs
+        return ResponseEntity.ok(quizSummaryDTOs);
+    }
     /**
      * Get a quiz by ID.
      */
@@ -97,6 +126,7 @@ public class QuizController {
                         questionDTO.setQuestionText(question.getQuestionText());
                         questionDTO.setOptions(question.getOptions());
                         questionDTO.setCorrectAnswer(question.getCorrectAnswer());
+
                         return questionDTO;
                     })
                     .collect(Collectors.toList());
@@ -131,6 +161,12 @@ public class QuizController {
         boolean isDeleted = quizService.deleteQuiz(id);
         return isDeleted ? ResponseEntity.ok("Quiz deleted successfully.") : ResponseEntity.notFound().build();
     }
+    /**
+     * Update a quiz tournament. Updatable fields include name, start date & end date.
+     */
+
+
+
     // Get ongoing quizzes
     @GetMapping("/ongoing")
     public ResponseEntity<List<Quiz>> getOngoingQuizzes() {

@@ -1,17 +1,20 @@
 package cs.quizzapp.prokect.backend.dto;
 
 import java.util.Date;
-import java.util.List;
 
-public class QuizDTO {
+public class QuizSummaryDTO {
     private Long id;
     private String name;
     private String category;
     private String difficulty;
     private Date startDate;
     private Date endDate;
+    private int likesCount;
+    private Double rating;
+    private Integer ratingCount;
+    private int numberOfQuestions; // Number of questions in the tournament
 
-    private List<QuestionDTO> questions;
+    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -61,11 +64,35 @@ public class QuizDTO {
         this.endDate = endDate;
     }
 
-    public List<QuestionDTO> getQuestions() {
-        return questions;
+    public int getLikesCount() {
+        return likesCount;
     }
 
-    public void setQuestions(List<QuestionDTO> questions) {
-        this.questions = questions;
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
+    public int getNumberOfQuestions() {
+        return numberOfQuestions;
+    }
+
+    public void setNumberOfQuestions(int numberOfQuestions) {
+        this.numberOfQuestions = numberOfQuestions;
     }
 }
