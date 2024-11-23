@@ -62,20 +62,28 @@ public class QuizService {
         return quizRepository.save(quiz);
     }
 
+
     /**
      * Updates an existing quiz by ID.
      * @param id The ID of the quiz to update.
-     * @param updatedQuiz The updated Quiz object.
-     * @return The updated Quiz object, or null if not found.
+     * @param updatedquizRequest The input data for updating the quiz.
+     * @return true if the update was successful, false otherwise.
      */
-    public Quiz updateQuiz(Long id, Quiz updatedQuiz) {
+    public Quiz updateQuiz(Long id, QuizRequest updatedquizRequest) {
         Optional<Quiz> quizOptional = quizRepository.findById(id);
         if (quizOptional.isPresent()) {
             Quiz quiz = quizOptional.get();
-            quiz.setName(updatedQuiz.getName());
-            quiz.setStartDate(updatedQuiz.getStartDate());
-            quiz.setEndDate(updatedQuiz.getEndDate());
+            if (updatedquizRequest.getName() != null) {
+                quiz.setName(updatedquizRequest.getName());
+            }
+            if (updatedquizRequest.getStartDate() != null) {
+                quiz.setStartDate(updatedquizRequest.getStartDate());
+            }
+            if (updatedquizRequest.getEndDate() != null) {
+                quiz.setEndDate(updatedquizRequest.getEndDate());
+            }
             return quizRepository.save(quiz);
+
         }
         return null;
     }
@@ -110,6 +118,12 @@ public class QuizService {
             return true;
         }
         return false;
+    }
+    public boolean createCategory(String categoryName) {
+        return QuizCategoryMapper.addCategory(categoryName);
+    }
+    public boolean deleteCategory(String categoryName) {
+        return QuizCategoryMapper.deleteCategory(categoryName);
     }
 
     //Get ongoing or currently active quizzes.
