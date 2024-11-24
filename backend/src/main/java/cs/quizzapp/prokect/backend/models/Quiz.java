@@ -1,11 +1,13 @@
 package cs.quizzapp.prokect.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import java.util.Date;
-import java.util.List;
+
+import java.util.*;
 
 @Entity
 public class Quiz {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,54 +18,115 @@ public class Quiz {
     private Date startDate;
     private Date endDate;
 
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    private int likesCount = 0; // Tracks likes count
+    private int rating; // Average rating
+
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Question> questions;
 
-    // No-argument constructor required by JPA
-    public Quiz() {}
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    // Parameterized constructor
-    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate) {
+    // Default constructor
+    public Quiz() {
+    }
+
+    // Constructor with fields
+
+
+    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, int rating) {
         this.id = id;
         this.name = name;
         this.category = category;
         this.difficulty = difficulty;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.likesCount = likesCount;
+        this.rating = rating;
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getName() {
+        return name;
+    }
 
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public Date getStartDate() { return startDate; }
-    public void setStartDate(Date startDate) { this.startDate = startDate; }
+    public String getCategory() {
+        return category;
+    }
 
-    public Date getEndDate() { return endDate; }
-    public void setEndDate(Date endDate) { this.endDate = endDate; }
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
-    public List<Question> getQuestions() { return questions; }
-    public void setQuestions(List<Question> questions) { this.questions = questions; }
+    public String getDifficulty() {
+        return difficulty;
+    }
 
-    @Override
-    public String toString() {
-        return "Quiz{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", category='" + category + '\'' +
-                ", difficulty='" + difficulty + '\'' +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
-                ", questions=" + questions.size() +
-                '}';
+    public void setDifficulty(String difficulty) {
+        this.difficulty = difficulty;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public int getLikesCount() {
+        return likesCount;
+    }
+
+    public void setLikesCount(int likesCount) {
+        this.likesCount = likesCount;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public List<Question> getQuestions() {
+        if (questions == null) return null;
+        return questions.stream()
+                .limit(10) // Limit to 10 questions
+                .toList();
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

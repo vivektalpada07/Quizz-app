@@ -1,7 +1,8 @@
 package cs.quizzapp.prokect.backend.controllers;
 
 import cs.quizzapp.prokect.backend.models.Question;
-import cs.quizzapp.prokect.backend.services.TriviaService;
+import cs.quizzapp.prokect.backend.models.Quiz;
+import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import cs.quizzapp.prokect.backend.services.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,10 +18,6 @@ public class QuestionController {
 
     @Autowired
     private QuestionService questionService;
-
-    @Autowired
-    private TriviaService triviaService;
-
     // Get all questions
     @GetMapping
     public ResponseEntity<List<Question>> getAllQuestions() {
@@ -28,7 +25,7 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
-    // Get question by ID
+    // Get a question by ID
     @GetMapping("/{id}")
     public ResponseEntity<Question> getQuestionById(@PathVariable Long id) {
         Optional<Question> question = questionService.getQuestionById(id);
@@ -36,27 +33,25 @@ public class QuestionController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 
-    // Get questions by Quiz ID
+    // Get questions for a specific quiz by Quiz ID
     @GetMapping("/quiz/{quizId}")
     public ResponseEntity<List<Question>> getQuestionsByQuizId(@PathVariable Long quizId) {
         List<Question> questions = questionService.getQuestionsByQuizId(quizId);
-        return ResponseEntity.ok(questions);
+        return ResponseEntity.ok(questions.stream().limit(10).toList()); // Limit to 10 questions
     }
 
-    // Fetch questions from external API, save them to the database, and return them
-    @GetMapping("/fetch")
-    public ResponseEntity<?> fetchAndSaveQuestions() {
+    // Fetch and save questions for a specific quiz
+    @PostMapping("/fetch")
+    public ResponseEntity<?> fetchAndSaveQuestions(@RequestBody QuizRequest quizRequest, @RequestBody Quiz quiz) {
         try {
-            List<Question> questions = triviaService.fetchAndSaveQuestions();
+            // Use the instance of questionService to call the fetchAndSaveQuestions method
+            List<Question> questions = questionService.fetchAndSaveQuestions(quizRequest, quiz);
             return ResponseEntity.status(HttpStatus.CREATED).body(questions);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred: " + e.getMessage());
+                    .body("An error occurred while fetching questions: " + e.getMessage());
         }
     }
-
-
-
 
     // Add a new question
     @PostMapping
@@ -65,7 +60,7 @@ public class QuestionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedQuestion);
     }
 
-    // Update an existing question by ID
+    // Update an existing question
     @PutMapping("/{id}")
     public ResponseEntity<Question> updateQuestion(@PathVariable Long id, @RequestBody Question updatedQuestion) {
         Optional<Question> question = questionService.updateQuestion(id, updatedQuestion);
@@ -73,7 +68,7 @@ public class QuestionController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 
-    // Delete a question by ID
+    // Delete a question
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         boolean isDeleted = questionService.deleteQuestion(id);
