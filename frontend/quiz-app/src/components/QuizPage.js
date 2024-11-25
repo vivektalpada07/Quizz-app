@@ -2,15 +2,13 @@ import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
 
-function HomePage() {
+function QuizPage() {
     return (
         <div>
             <Header/>
             <br/>
             <div align="center">
-            <h1>Welcome to the Quiz Tournament</h1>
-            <br/><br/><br/>
-            <h4 align='center'>Tournaments</h4>
+            <h1>Welcome to the Quiz Page</h1>
             </div>
             <Footer/>
         </div>
@@ -18,4 +16,4 @@ function HomePage() {
     );
 };
 
-export default HomePage;
+export default QuizPage;
