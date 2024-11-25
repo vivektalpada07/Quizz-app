@@ -18,7 +18,8 @@ function App() {
           <Route path='/signUp' element={<SignUp />}/> 
           <Route path='/adminPage' element={<AdminPage />}/> 
           <Route path='/playerPage' element={<PlayerPage />}/>
-          <Route path='/quiz' element={<QuizPage />}/>         
+          <Route path='/quiz/:id' element={<QuizPage />}/>
+                   
         </Routes>
       </BrowserRouter>
     </div>
