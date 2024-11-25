@@ -6,6 +6,13 @@ import java.util.List;
 
 @Entity
 public class User {
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,7 +23,8 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
-
+    @Column
+    private String passwordResetToken;
     @Column(nullable = false)
     private String password;
 
