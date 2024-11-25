@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -25,6 +26,36 @@ public class UserService implements UserDetailsService {
         this.passwordEncoder = passwordEncoder;
     }
 
+
+    // Request password reset by generating a token using username
+    public String requestPasswordReset(String username) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            // Generate a reset token (UUID for simplicity)
+            String resetToken = UUID.randomUUID().toString();
+            user.setPasswordResetToken(resetToken);
+            userRepository.save(user);
+
+            return resetToken; // Return the reset token to be displayed to the user in the app
+        }
+        throw new IllegalArgumentException("User with the given username not found.");
+    }
+    // Reset password using the token and username
+    public boolean resetPasswordWithUsername(String username, String token, String newPassword) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            if (user.getPasswordResetToken() != null && user.getPasswordResetToken().equals(token)) {
+                user.setPassword(passwordEncoder.encode(newPassword)); // Hash the password
+                user.setPasswordResetToken(null); // Clear the reset token after successful reset
+                userRepository.save(user);
+                return true;
+            }
+        }
+        return false;
+    }
     // Authentication (Login)
     public boolean authenticate(String username, String password) {
         User user = userRepository.findByUsername(username)

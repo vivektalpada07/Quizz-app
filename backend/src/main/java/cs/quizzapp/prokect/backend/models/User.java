@@ -4,6 +4,13 @@ import jakarta.persistence.*;
 
 @Entity
 public class User {
+    public String getPasswordResetToken() {
+        return passwordResetToken;
+    }
+
+    public void setPasswordResetToken(String passwordResetToken) {
+        this.passwordResetToken = passwordResetToken;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,7 +21,8 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
-
+    @Column
+    private String passwordResetToken;
     @Column(nullable = false)
     private String password;
 
@@ -60,4 +68,7 @@ public class User {
 
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+
 }
+
