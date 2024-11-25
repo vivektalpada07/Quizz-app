@@ -1,6 +1,5 @@
 package cs.quizzapp.prokect.backend.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -103,7 +102,7 @@ public class Quiz {
         this.likesCount = likesCount;
     }
 
-    public int getRating() {
+    public double getRating() {
         return rating;
     }
 

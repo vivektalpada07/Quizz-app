@@ -95,7 +95,7 @@ public class QuizController {
             quizSummaryDTO.setEndDate(quiz.getEndDate());
             quizSummaryDTO.setLikesCount(quiz.getLikesCount());
             quizSummaryDTO.setRating(quiz.getRating());
-            quizSummaryDTO.setRatingCount(quiz.getRatingCount());
+
 
             // Set the number of questions
             quizSummaryDTO.setNumberOfQuestions(quiz.getQuestions().size());
