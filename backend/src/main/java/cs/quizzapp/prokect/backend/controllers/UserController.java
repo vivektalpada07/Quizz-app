@@ -65,6 +65,7 @@ public class UserController {
         }
     }
 
+
     // ------------------ Quiz Management for Admins ------------------
     @PostMapping("/admin/quizzes")
     public ResponseEntity<String> createQuizWithQuestions(@RequestBody QuizRequest quizRequest) {
@@ -105,7 +106,7 @@ public class UserController {
                 quizSummaryDTO.setEndDate(updatedQuiz.getEndDate());
                 quizSummaryDTO.setLikesCount(updatedQuiz.getLikesCount());
                 quizSummaryDTO.setRating(updatedQuiz.getRating());
-                quizSummaryDTO.setRatingCount(updatedQuiz.getRatingCount());
+
 
                 // Return updated quiz details without nested questions
                 return ResponseEntity.ok(quizSummaryDTO);
@@ -157,8 +158,7 @@ public class UserController {
             quizStats.put("name", quiz.getName());
             quizStats.put("likesCount", quiz.getLikesCount());
             quizStats.put("rating", quiz.getRating());
-            quizStats.put("ratingCount", quiz.getRatingCount());
-            quizStats.put("numberOfParticipants", quiz.getParticipants().size());
+            //quizStats.put("numberOfParticipants", quiz.getParticipants().size());
             return quizStats;
         }).collect(Collectors.toList());
 
