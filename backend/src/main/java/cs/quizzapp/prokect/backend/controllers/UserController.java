@@ -174,6 +174,7 @@ public ResponseEntity<String> createCategory(@RequestBody String categoryName) {
     } catch (IllegalArgumentException e) {
         return ResponseEntity.badRequest().body("Error creating category: " + e.getMessage());
     }
+
 }
     @GetMapping("/admin/categories")
     public ResponseEntity<List<Category>> getAllCategories() {
