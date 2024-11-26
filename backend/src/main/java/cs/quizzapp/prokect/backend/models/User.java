@@ -1,5 +1,6 @@
 package cs.quizzapp.prokect.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -37,7 +38,14 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Quiz> quizzes;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Score> scores;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Participation> participations;
+
     public User() {}
+
 
     public User(String username, String email, String password, String role, String firstName, String lastName, String profilePicture) {
         this.username = username;
@@ -80,5 +88,21 @@ public class User {
 
     public void setQuizzes(List<Quiz> quizzes) {
         this.quizzes = quizzes;
+    }
+
+    public List<Score> getScores() {
+        return scores;
+    }
+
+    public void setScores(List<Score> scores) {
+        this.scores = scores;
+    }
+
+    public List<Participation> getParticipations() {
+        return participations;
+    }
+
+    public void setParticipations(List<Participation> participations) {
+        this.participations = participations;
     }
 }

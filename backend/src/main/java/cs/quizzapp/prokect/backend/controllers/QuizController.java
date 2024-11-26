@@ -34,6 +34,9 @@ public class QuizController {
     @Autowired
     private ScoreRepository scoreRepository;
 
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
     /**
      * Create a new quiz and fetch questions dynamically from OpenTDB.
      */
@@ -189,8 +192,8 @@ public class QuizController {
     }
 
     // Get participated quizzes by each user.
-    @GetMapping("user/{userId}/participated")
-    public ResponseEntity<List<Quiz>> getParticipatedQuizzes(@PathVariable Long userId) {
+    @GetMapping("/participated")
+    public ResponseEntity<List<Quiz>> getParticipatedQuizzes(@RequestParam Long userId) {
         List<Quiz> quizzes = quizService.getParticipatedQuizzes(userId);
         if (quizzes.isEmpty()) {
             return ResponseEntity.noContent().build(); // Return 204 if no quizzes are found
@@ -198,9 +201,9 @@ public class QuizController {
         return ResponseEntity.ok(quizzes);
     }
 
-    // Participate in quiz
-    @PostMapping("/{quizId}/participate")
-    public ResponseEntity<?> participateInQuiz(
+    // Play quiz
+    @PostMapping("/{quizId}/play")
+    public ResponseEntity<?> playQuiz(
             @PathVariable Long quizId,
             @RequestParam Long userId) {
         try {

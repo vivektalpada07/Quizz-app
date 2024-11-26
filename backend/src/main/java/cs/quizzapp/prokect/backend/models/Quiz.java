@@ -1,5 +1,6 @@
 package cs.quizzapp.prokect.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.*;
@@ -27,15 +28,20 @@ public class Quiz {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Score> scores;
+
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Participation> participations;
+
     // Default constructor
     public Quiz() {
     }
 
     // Constructor with fields
-
-
-    public Quiz(Long id, String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, int rating) {
-        this.id = id;
+    public Quiz(String name, String category, String difficulty, Date startDate, Date endDate, int likesCount, int rating, List<Question> questions, User user, List<Score> scores, List<Participation> participations) {
         this.name = name;
         this.category = category;
         this.difficulty = difficulty;
@@ -43,6 +49,10 @@ public class Quiz {
         this.endDate = endDate;
         this.likesCount = likesCount;
         this.rating = rating;
+        this.questions = questions;
+        this.user = user;
+        this.scores = scores;
+        this.participations = participations;
     }
 
     // Getters and Setters
@@ -127,5 +137,21 @@ public class Quiz {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public List<Score> getScores() {
+        return scores;
+    }
+
+    public void setScores(List<Score> scores) {
+        this.scores = scores;
+    }
+
+    public List<Participation> getParticipations() {
+        return participations;
+    }
+
+    public void setParticipations(List<Participation> participations) {
+        this.participations = participations;
     }
 }

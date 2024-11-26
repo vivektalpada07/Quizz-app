@@ -1,14 +1,8 @@
 package cs.quizzapp.prokect.backend.services;
 
-import cs.quizzapp.prokect.backend.db.QuestionRepository;
-import cs.quizzapp.prokect.backend.db.QuizRepository;
-import cs.quizzapp.prokect.backend.db.ScoreRepository;
-import cs.quizzapp.prokect.backend.db.UserRepository;
+import cs.quizzapp.prokect.backend.db.*;
 import cs.quizzapp.prokect.backend.dto.QuestionDTO;
-import cs.quizzapp.prokect.backend.models.Question;
-import cs.quizzapp.prokect.backend.models.Quiz;
-import cs.quizzapp.prokect.backend.models.Score;
-import cs.quizzapp.prokect.backend.models.User;
+import cs.quizzapp.prokect.backend.models.*;
 import cs.quizzapp.prokect.backend.payload.QuizRequest;
 import cs.quizzapp.prokect.backend.utils.QuizCategoryMapper;
 
@@ -33,9 +27,14 @@ public class QuizService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
     private ScoreRepository scoreRepository;
 
+    @Autowired
     private QuestionRepository questionRepository;
+
+    @Autowired
+    private ParticipationRepository participationRepository;
 
     /**
      * Creates a new quiz and fetches questions from OpenTDB.
@@ -160,6 +159,10 @@ public class QuizService {
 
     //Players can participate in the quiz.
     public List<Question> playQuiz(Long quizId, Long userId) {
+        // Fetch the user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         // Fetch the quiz
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
@@ -167,20 +170,26 @@ public class QuizService {
         // Check if the quiz is ongoing
         Date currentDate = new Date();
         if (currentDate.before(quiz.getStartDate()) || currentDate.after(quiz.getEndDate())) {
-            throw new IllegalStateException("Player can only join ongoing quizzes");
+            throw new IllegalStateException("Player can only join ongoing quizzes.");
         }
 
-        // Retrieve the same 10 questions assigned to this quiz
-        List<Question> questions = quiz.getQuestions();
-        if (questions.size() > 10) {
-            questions = questions.subList(0, 10);
+        // Check if the user has already participated in the quiz
+        boolean hasParticipated = quiz.getParticipations().stream()
+                .anyMatch(participation -> participation.getUser().getId().equals(userId));
+        if (hasParticipated) {
+            throw new IllegalStateException("Player has already participated in this quiz.");
         }
 
-        // Get questions without correct answers
-        return questions.stream()
+        // Record the participation
+        Participation participation = new Participation(user, quiz);
+        participationRepository.save(participation);
+
+        // Retrieve and return questions
+        return quiz.getQuestions().stream()
                 .map(question -> new Question(question.getId(), question.getQuestionText(), question.getOptions()))
                 .collect(Collectors.toList());
     }
+
 
     //Display feedback according to correct and incorrect answers. Also display the score, no of answers correct.
     public Map<String, Object> submitAnswers(Long quizId, Long userId, Map<Long, String> answers) {
@@ -229,9 +238,12 @@ public class QuizService {
         int totalQuestions = quiz.getQuestions().size();
         double score = ((double) correctAnswersCount / totalQuestions) * 10;
 
-        // Store the score (you can store this in a database, here it's in memory)
-        Map<Long, Double> scoreStorage = new HashMap<>();
-        scoreStorage.put(userId, score);  // Store score for the user (this could be in a database)
+        // Store the score in the database
+        Score quizScore = new Score();
+        quizScore.setUser(user);
+        quizScore.setQuiz(quiz);
+        quizScore.setScore(score);
+        scoreRepository.save(quizScore);
 
         // Return response with total score out of 10 and feedback
         Map<String, Object> response = new HashMap<>();
