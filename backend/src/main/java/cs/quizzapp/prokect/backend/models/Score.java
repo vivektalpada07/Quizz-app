@@ -8,18 +8,24 @@ public class Score {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long quizId;
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    private int score;
+    @ManyToOne
+    @JoinColumn(name = "quiz_id", nullable = false)
+    private Quiz quiz;
 
+    @Column(name = "score", nullable = false)
+    private double score;
     // No-argument constructor required by JPA
     public Score() {}
 
     // Parameterized constructor
-    public Score(Long quizId, Long userId, int score) {
-        this.quizId = quizId;
-        this.userId = userId;
+    public Score(Long id, User user, Quiz quiz, double score) {
+        this.id = id;
+        this.user = user;
+        this.quiz = quiz;
         this.score = score;
     }
 
@@ -32,27 +38,27 @@ public class Score {
         this.id = id;
     }
 
-    public Long getQuizId() {
-        return quizId;
+    public User getUser() {
+        return user;
     }
 
-    public void setQuizId(Long quizId) {
-        this.quizId = quizId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    public Long getUserId() {
-        return userId;
+    public Quiz getQuiz() {
+        return quiz;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setQuiz(Quiz quiz) {
+        this.quiz = quiz;
     }
 
-    public int getScore() {
+    public double getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(double score) {
         this.score = score;
     }
 
@@ -60,11 +66,9 @@ public class Score {
     public String toString() {
         return "Score{" +
                 "id=" + id +
-                ", userId=" + userId +
-                ", quizId=" + quizId +
+                ", userId=" + (user != null ? user.getId() : null) +
+                ", quizId=" + (quiz != null ? quiz.getId() : null) +
                 ", score=" + score +
                 '}';
     }
-
-
 }
