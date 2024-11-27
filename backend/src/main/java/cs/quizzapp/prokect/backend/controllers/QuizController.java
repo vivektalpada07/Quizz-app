@@ -268,9 +268,13 @@ public class QuizController {
 
     // Add the rating
     @PostMapping("/{quizId}/rate")
-    public ResponseEntity<Void> addRating(@PathVariable Long quizId, @RequestParam int rating) {
-        quizService.addRating(quizId, rating);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> rateQuiz(@PathVariable Long quizId, @RequestParam int rating) {
+        try {
+            quizService.addRating(quizId, rating);
+            return ResponseEntity.ok("Rating added successfully!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 }
