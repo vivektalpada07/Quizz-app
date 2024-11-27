@@ -153,17 +153,17 @@ public class QuizService {
     }
 
     //Get participated quizzes.
-    public List<Quiz> getParticipatedQuizzes(Long userId) {
-        return quizRepository.findParticipatedQuizzesByUserId(userId);
+    public List<Quiz> getParticipatedQuizzes(String username) {
+        return quizRepository.findParticipatedQuizzesByUsername(username);
     }
 
     //Players can participate in the quiz.
-    public List<Question> playQuiz(Long quizId, Long userId) {
-        // Fetch the user
-        User user = userRepository.findById(userId)
+    public List<Question> playQuiz(Long quizId, String username) {
+        // Fetch the user by username
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Fetch the quiz
+        // Fetch the quiz by ID
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
@@ -173,9 +173,9 @@ public class QuizService {
             throw new IllegalStateException("Player can only join ongoing quizzes.");
         }
 
-        // Check if the user has already participated in the quiz
+        // Check if the user has already participated in the quiz using the username
         boolean hasParticipated = quiz.getParticipations().stream()
-                .anyMatch(participation -> participation.getUser().getId().equals(userId));
+                .anyMatch(participation -> participation.getUser().getUsername().equals(username));
         if (hasParticipated) {
             throw new IllegalStateException("Player has already participated in this quiz.");
         }
@@ -190,11 +190,10 @@ public class QuizService {
                 .collect(Collectors.toList());
     }
 
-
     //Display feedback according to correct and incorrect answers. Also display the score, no of answers correct.
-    public Map<String, Object> submitAnswers(Long quizId, Long userId, Map<Long, String> answers) {
+    public Map<String, Object> submitAnswers(Long quizId, String username, Map<Long, String> answers) {
         // Fetch user and quiz from the repositories
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Quiz quiz = quizRepository.findById(quizId)
@@ -274,7 +273,7 @@ public class QuizService {
 
     //Additional features
     //Replay a quiz
-    public Map<String, Object> replayQuiz(Long quizId, Long userId, Map<Long, String> playerAnswers) {
+    public Map<String, Object> replayQuiz(Long quizId, String username, Map<Long, String> playerAnswers) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
@@ -315,7 +314,7 @@ public class QuizService {
         double score = ((double) correctAnswersCount / quiz.getQuestions().size()) * 10;
 
         // Log replay action (can be removed after debugging)
-        System.out.println("Player " + userId + " replayed Quiz " + quizId + " with score: " + score);
+        System.out.println("Player " + username + " replayed Quiz " + quizId + " with score: " + score);
 
         // Return score and feedback
         Map<String, Object> response = new HashMap<>();
@@ -324,9 +323,6 @@ public class QuizService {
 
         return response;
     }
-
-
-
 
     //Add a rating
     public void addRating(Long quizId, int rating) {
