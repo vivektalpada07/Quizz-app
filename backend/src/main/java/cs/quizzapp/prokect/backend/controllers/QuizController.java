@@ -193,8 +193,8 @@ public class QuizController {
 
     // Get participated quizzes by each user.
     @GetMapping("/participated")
-    public ResponseEntity<List<Quiz>> getParticipatedQuizzes(@RequestParam String username) {
-        List<Quiz> quizzes = quizService.getParticipatedQuizzes(username);
+    public ResponseEntity<List<Quiz>> getParticipatedQuizzes(@RequestParam Long userId) {
+        List<Quiz> quizzes = quizService.getParticipatedQuizzes(userId);
         if (quizzes.isEmpty()) {
             return ResponseEntity.noContent().build(); // Return 204 if no quizzes are found
         }
@@ -205,10 +205,10 @@ public class QuizController {
     @PostMapping("/{quizId}/play")
     public ResponseEntity<?> playQuiz(
             @PathVariable Long quizId,
-            @RequestParam String username) {
+            @RequestParam Long userId) {
         try {
             // Call the service method to get the list of questions
-            List<Question> questions = quizService.playQuiz(quizId, username);
+            List<Question> questions = quizService.playQuiz(quizId, userId);
 
             // Return the list of questions in the response
             return ResponseEntity.ok(questions);
@@ -218,13 +218,13 @@ public class QuizController {
     }
 
     // After submit answers it will display the feedback according to correct or incorrect answers.
-    @PostMapping("/{quizId}/user/{username}/submit")
+    @PostMapping("/{quizId}/user/{userId}/submit")
     public ResponseEntity<Map<String, Object>> submitAnswers(
             @PathVariable Long quizId,
-            @PathVariable String username,
+            @PathVariable Long userId,
             @RequestBody Map<Long, String> answers) {
 
-        Map<String, Object> response = quizService.submitAnswers(quizId, username, answers);
+        Map<String, Object> response = quizService.submitAnswers(quizId, userId, answers);
         return ResponseEntity.ok(response);
     }
 
@@ -252,14 +252,14 @@ public class QuizController {
 
     // Additional features
     // Play the quiz again
-    @PostMapping("/{quizId}/user/{username}/replay")
+    @PostMapping("/{quizId}/user/{userId}/replay")
     public ResponseEntity<Map<String, Object>> replayQuiz(
             @PathVariable Long quizId,
-            @PathVariable String username,
+            @PathVariable Long userId,
             @RequestBody Map<Long, String> playerAnswers
     ) {
         // Call the service method to handle replay logic
-        Map<String, Object> response = quizService.replayQuiz(quizId, username, playerAnswers);
+        Map<String, Object> response = quizService.replayQuiz(quizId, userId, playerAnswers);
 
         // Return the response with score and feedback
         return ResponseEntity.ok(response);
@@ -268,14 +268,9 @@ public class QuizController {
 
     // Add the rating
     @PostMapping("/{quizId}/rate")
-    public ResponseEntity<?> rateQuiz(@PathVariable Long quizId, @RequestParam int rating) {
-        try {
-            quizService.addRating(quizId, rating);
-            return ResponseEntity.ok("Rating added successfully!");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<Void> addRating(@PathVariable Long quizId, @RequestParam int rating) {
+        quizService.addRating(quizId, rating);
+        return ResponseEntity.ok().build();
     }
-
 
 }
